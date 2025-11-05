@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LogViewer } from "@/components/LogViewer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -19,7 +20,15 @@ export default function Home() {
         </div>
       </header>
       <main className="py-8">
-        <LogViewer />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+          }
+        >
+          <LogViewer />
+        </Suspense>
       </main>
     </div>
   );
