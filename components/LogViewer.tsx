@@ -265,6 +265,12 @@ export function LogViewer() {
               <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    No
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Created At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Level
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -272,9 +278,6 @@ export function LogViewer() {
                   </th>
                   <th className="min-w-60 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Meta
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Created At
                   </th>
                 </tr>
               </thead>
@@ -289,11 +292,17 @@ export function LogViewer() {
                     </td>
                   </tr>
                 ) : (
-                  logs.map((log: Log) => (
+                  logs.map((log: Log, index: number) => (
                     <tr
                       key={log.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {(params.page - 1) * params.pageSize + index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {formatDate(log.created_at)}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${getLevelColor(
@@ -311,13 +320,10 @@ export function LogViewer() {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => handleViewMeta(log)}
-                          className="text-sm text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:underline transition-colors break-all line-clamp-1 text-left"
                         >
                           {getDeviceInfo(log.meta) || "View Meta"}
                         </button>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(log.created_at)}
                       </td>
                     </tr>
                   ))
@@ -328,7 +334,6 @@ export function LogViewer() {
         </div>
       )}
 
-      {/* Pagination */}
       {!isLoading && !isError && (
         <div className="mt-6">
           <Pagination
@@ -339,7 +344,6 @@ export function LogViewer() {
         </div>
       )}
 
-      {/* Metadata Sidebar */}
       <MetadataSidebar
         log={selectedLog}
         isOpen={isSidebarOpen}
