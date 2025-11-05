@@ -1,5 +1,6 @@
 import { LogViewer } from "@/components/LogViewer";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default function Home() {
   return (
@@ -10,7 +11,10 @@ export default function Home() {
             <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               Tinda Mobile Logs
             </h1>
-            {/* <ThemeToggle /> */}
+            <div className="flex items-center gap-4">
+              {/* <ThemeToggle /> */}
+              <LogoutButton />
+            </div>
           </div>
         </div>
       </header>

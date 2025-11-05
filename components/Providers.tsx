@@ -5,6 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { useState } from "react";
 
 import { ThemeProvider } from "./ThemeProvider";
+import { AuthProvider } from "./AuthProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -21,11 +22,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider>
-      <NuqsAdapter>
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
-      </NuqsAdapter>
+      <AuthProvider>
+        <NuqsAdapter>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </NuqsAdapter>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

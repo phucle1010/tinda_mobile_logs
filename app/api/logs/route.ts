@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase-server";
 import type { LogsResponse } from "@/types/log";
 
 export async function GET(request: NextRequest) {
@@ -12,7 +12,17 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get("sortBy") || "created_at";
     const sortOrder = searchParams.get("sortOrder") || "desc";
 
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
+
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Build query
     let query = supabase.from("logger").select("*", { count: "exact" });
