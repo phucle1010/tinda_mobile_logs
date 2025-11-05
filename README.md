@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Log Viewer Application
 
-## Getting Started
+A modern log viewer application built with Next.js, Supabase, and Tailwind CSS.
 
-First, run the development server:
+## Features
+
+- View logs from Supabase database
+- Filter logs by level (ERROR, WARN, INFO, DEBUG)
+- Search logs by message content
+- Sort by created_at or level
+- Pagination support
+- Light and dark theme support
+- Responsive design
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create a `.env.local` file in the root directory:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database Schema
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Make sure your Supabase database has a `logs` table with the following schema:
 
-## Learn More
+```sql
+CREATE TABLE logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  level TEXT NOT NULL CHECK (level IN ('ERROR', 'WARN', 'INFO', 'DEBUG')),
+  message TEXT NOT NULL,
+  meta JSONB DEFAULT '{}'::jsonb
+);
 
-To learn more about Next.js, take a look at the following resources:
+CREATE INDEX idx_logs_created_at ON logs(created_at DESC);
+CREATE INDEX idx_logs_level ON logs(level);
+CREATE INDEX idx_logs_message ON logs USING gin(to_tsvector('english', message));
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
 
-## Deploy on Vercel
+## Configuration Files
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `.prettierrc` - Prettier configuration
+- `.prettierignore` - Files to ignore for Prettier
+- `.editorconfig` - Editor configuration
+- `eslint.config.mjs` - ESLint configuration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Enable log in supabase
+
+```sql
+  CREATE POLICY "Allow read for all"
+  ON logger
+  FOR SELECT
+  USING (true);
+```
