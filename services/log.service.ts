@@ -1,4 +1,5 @@
 import { LogsQueryParams, LogsResponse } from "@/types/log";
+import type { LogStats } from "@/components/sections/LogLevelStats";
 
 const getLogs = async (params: LogsQueryParams): Promise<LogsResponse> => {
   const queryParams = new URLSearchParams();
@@ -21,6 +22,12 @@ const getLogs = async (params: LogsQueryParams): Promise<LogsResponse> => {
   if (params.search) {
     queryParams.append("search", params.search);
   }
+  if (params.dateFrom) {
+    queryParams.append("dateFrom", params.dateFrom);
+  }
+  if (params.dateTo) {
+    queryParams.append("dateTo", params.dateTo);
+  }
 
   const response = await fetch(`/api/logs?${queryParams.toString()}`);
   const data = await response.json();
@@ -32,6 +39,18 @@ const getLogs = async (params: LogsQueryParams): Promise<LogsResponse> => {
   return data;
 };
 
+const getLogStats = async (): Promise<LogStats> => {
+  const response = await fetch("/api/logs/stats");
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to fetch log stats");
+  }
+
+  return data;
+};
+
 export const logService = {
   getLogs,
+  getLogStats,
 };

@@ -23,4 +23,6 @@ export interface LogsQueryParams {
   search?: string;
   sortBy?: "created_at" | "level";
   sortOrder?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
 }

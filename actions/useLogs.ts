@@ -15,6 +15,8 @@ export const useLogs = (params: LogsQueryParams) => {
         params.search,
         params.sortBy,
         params.sortOrder,
+        params.dateFrom,
+        params.dateTo,
       ],
       queryFn: () => logService.getLogs(params),
     });

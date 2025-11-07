@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../../providers/AuthProvider";
 
 export function LogoutButton() {
   const { signOut, user, loading } = useAuth();
@@ -18,4 +18,3 @@ export function LogoutButton() {
     </button>
   );
 }
-
