@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const sortBy = searchParams.get("sortBy") || "created_at";
     const sortOrder = searchParams.get("sortOrder") || "desc";
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
 
     const supabase = await createServerClient();
 
@@ -24,9 +26,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Build query
+    // Build query for paginated results
     let query = supabase.from("logger").select("*", { count: "exact" });
-    const { data: allData } = await query;
+
+    // Apply date filters to query
+    if (dateFrom && dateFrom !== "undefined" && dateFrom.trim() !== "") {
+      // Parse date string (YYYY-MM-DD) and set to start of day in UTC
+      const fromDate = new Date(dateFrom + "T00:00:00.000Z");
+      query = query.gte("created_at", fromDate.toISOString());
+    }
+    if (dateTo && dateTo !== "undefined" && dateTo.trim() !== "") {
+      // Parse date string (YYYY-MM-DD) and set to end of day in UTC
+      const toDate = new Date(dateTo + "T23:59:59.999Z");
+      query = query.lte("created_at", toDate.toISOString());
+    }
 
     // Filter by level
     if (level !== "ALL") {

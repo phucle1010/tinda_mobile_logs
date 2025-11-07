@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "./ThemeProvider";
+import { useTheme } from "../../providers/ThemeProvider";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -43,4 +43,3 @@ export function ThemeToggle() {
     </button>
   );
 }
-

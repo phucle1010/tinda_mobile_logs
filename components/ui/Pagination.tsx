@@ -1,6 +1,7 @@
 "use client";
 
-import { Select } from "@/components/Select";
+import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
 
 interface PaginationProps {
   currentPage: number;
@@ -86,7 +87,9 @@ export function Pagination({
   };
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}>
+    <div
+      className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}
+    >
       {/* Page Info and Page Size Selector */}
       <div className="flex items-center gap-4">
         {/* Page Info */}
@@ -118,36 +121,40 @@ export function Pagination({
       {totalPages > 1 && (
         <div className="flex items-center gap-1.5">
           {/* First Page Button */}
-          <button
+          <Button
             onClick={handleFirst}
             disabled={currentPage === 1}
-            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            variant="outline"
+            size="sm"
             aria-label="First page"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              />
-            </svg>
-          </button>
+            className="px-2"
+            leftIcon={
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                />
+              </svg>
+            }
+          />
 
           {/* Previous Button */}
-          <button
+          <Button
             onClick={handlePrevious}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            variant="outline"
+            size="sm"
             aria-label="Previous page"
           >
             Previous
-          </button>
+          </Button>
 
           {/* Page Numbers */}
           <div className="flex items-center gap-1">
@@ -167,57 +174,58 @@ export function Pagination({
               const isActive = pageNum === currentPage;
 
               return (
-                <button
+                <Button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`min-w-[32px] px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-600 text-white dark:bg-blue-500"
-                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
+                  variant={isActive ? "primary" : "outline"}
+                  size="sm"
+                  className="min-w-[32px]"
                   aria-label={`Page ${pageNum}`}
                   aria-current={isActive ? "page" : undefined}
                 >
                   {pageNum}
-                </button>
+                </Button>
               );
             })}
           </div>
 
           {/* Next Button */}
-          <button
+          <Button
             onClick={handleNext}
             disabled={currentPage === totalPages}
-            className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            variant="outline"
+            size="sm"
             aria-label="Next page"
           >
             Next
-          </button>
+          </Button>
 
           {/* Last Page Button */}
-          <button
+          <Button
             onClick={handleLast}
             disabled={currentPage === totalPages}
-            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            variant="outline"
+            size="sm"
+            className="px-2"
             aria-label="Last page"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 5l7 7-7 7M5 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+            leftIcon={
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                />
+              </svg>
+            }
+          />
         </div>
       )}
     </div>
   );
 }
-

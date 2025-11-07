@@ -15,6 +15,7 @@ export interface SelectProps {
   className?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
+  label?: string;
 }
 
 export function Select({
@@ -25,6 +26,7 @@ export function Select({
   className = "",
   disabled = false,
   size = "sm",
+  label,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAbove, setShowAbove] = useState(false);
@@ -148,8 +150,14 @@ export function Select({
   };
 
   return (
-    <div ref={selectRef} className={`relative ${className}`}>
-      <button
+    <div className={className}>
+      {label && (
+        <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+          {label}
+        </label>
+      )}
+      <div ref={selectRef} className="relative">
+        <button
         ref={buttonRef}
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -240,6 +248,7 @@ export function Select({
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }

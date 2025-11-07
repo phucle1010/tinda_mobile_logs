@@ -72,4 +72,11 @@ const getDeviceInfo = (meta: Record<string, unknown>): string | null => {
   return parts.length > 0 ? parts.join(" • ") : null;
 };
 
-export { formatDate, parseMetadata, getDeviceInfo };
+const truncateText = (text: string, maxLength: number): string => {
+  if (typeof text !== "string") return "";
+  if (text.length <= maxLength) return text;
+  if (maxLength <= 3) return "...".slice(0, maxLength);
+  return text.slice(0, maxLength - 3) + "...";
+};
+
+export { formatDate, parseMetadata, getDeviceInfo, truncateText };

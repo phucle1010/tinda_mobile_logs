@@ -1,7 +1,9 @@
 "use client";
 
-import { ReactNode } from "react";
-import { Pagination } from "@/components/Pagination";
+import { ReactNode, useEffect, useState } from "react";
+import { Pagination } from "@/components/ui/Pagination";
+import { AutoRefreshToggle } from "@/components/common/AutoRefreshToggle";
+import { Button } from "@/components/ui/Button";
 
 export interface TableColumn<T> {
   key: string;
@@ -33,6 +35,9 @@ export interface TableProps<T> {
   // Results info props
   total?: number;
   resultsInfo?: string | ReactNode;
+  // Export props
+  onExportCSV?: () => void;
+  onExportJSON?: () => void;
   // Pagination props
   currentPage?: number;
   totalPages?: number;
@@ -40,6 +45,9 @@ export interface TableProps<T> {
   pageSize?: number;
   onPageSizeChange?: (pageSize: number) => void;
   pageSizeOptions?: number[];
+  // Auto-refresh props
+  enableAutoRefresh?: boolean;
+  onAutoRefresh?: () => void;
 }
 
 export function Table<T>({
@@ -61,13 +69,36 @@ export function Table<T>({
   isRefetching = false,
   total,
   resultsInfo,
+  onExportCSV,
+  onExportJSON,
   currentPage,
   totalPages,
   onPageChange,
   pageSize,
   onPageSizeChange,
   pageSizeOptions,
+  enableAutoRefresh = false,
+  onAutoRefresh,
 }: TableProps<T>) {
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(10);
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (
+      enableAutoRefresh &&
+      autoRefresh &&
+      refreshInterval > 0 &&
+      onAutoRefresh
+    ) {
+      const interval = setInterval(() => {
+        onAutoRefresh();
+      }, refreshInterval * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [enableAutoRefresh, autoRefresh, refreshInterval, onAutoRefresh]);
+
   const defaultRowClassName = (item: T, index: number) => {
     const baseClasses =
       "hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
@@ -100,40 +131,115 @@ export function Table<T>({
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between">
-        {(total !== undefined || resultsInfo) && (
-          <div className="mb-4 text-xs text-gray-600 dark:text-gray-400">
-            {resultsInfo ||
-              (total !== undefined &&
-                `Showing ${data.length} of ${total} ${total === 1 ? "item" : "items"}`)}
-          </div>
-        )}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+          {(total !== undefined || resultsInfo) && (
+            <div className="text-xs text-gray-600 dark:text-gray-400">
+              {resultsInfo ||
+                (total !== undefined &&
+                  `Showing ${data.length} of ${total} ${total === 1 ? "item" : "items"}`)}
+            </div>
+          )}
 
-        {onRefresh && (
-          <div className="mb-4 flex justify-end">
-            <button
+          {/* Auto-refresh Toggle */}
+          {enableAutoRefresh && (
+            <AutoRefreshToggle
+              enabled={autoRefresh}
+              interval={refreshInterval}
+              onToggle={setAutoRefresh}
+              onIntervalChange={setRefreshInterval}
+            />
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Export Buttons */}
+          {(onExportCSV || onExportJSON) && (
+            <div className="flex items-center gap-2">
+              {onExportCSV && (
+                <Button
+                  onClick={onExportCSV}
+                  disabled={loading || data.length === 0}
+                  variant="success"
+                  size="md"
+                  title="Export to CSV"
+                  leftIcon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  }
+                >
+                  CSV
+                </Button>
+              )}
+              {onExportJSON && (
+                <Button
+                  onClick={onExportJSON}
+                  disabled={loading || data.length === 0}
+                  variant="info"
+                  size="md"
+                  title="Export to JSON"
+                  leftIcon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  }
+                >
+                  JSON
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Refresh Button */}
+          {onRefresh && (
+            <Button
               onClick={onRefresh}
               disabled={loading || isRefetching}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              isLoading={isRefetching}
+              variant="primary"
+              size="md"
               title="Refresh data"
+              leftIcon={
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              }
             >
-              <svg
-                className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
               <span className="hidden sm:inline">Refresh</span>
-            </button>
-          </div>
-        )}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div

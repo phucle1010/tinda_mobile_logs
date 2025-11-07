@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Log, LogLevel } from "@/types/log";
 
 import { formatDate, parseMetadata } from "@/utils/format";
+import { copyLogToClipboard, copyLogId } from "@/utils/export";
+import { Button } from "@/components/ui/Button";
 
 interface MetadataSidebarProps {
   log: Log | null;
@@ -18,6 +20,7 @@ export function MetadataSidebar({
   onClose,
 }: MetadataSidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -37,6 +40,20 @@ export function MetadataSidebar({
       document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
+
+  const handleCopyLog = async () => {
+    if (!log) return;
+    await copyLogToClipboard(log);
+    setCopySuccess("log");
+    setTimeout(() => setCopySuccess(null), 2000);
+  };
+
+  const handleCopyId = async () => {
+    if (!log) return;
+    await copyLogId(log.id);
+    setCopySuccess("id");
+    setTimeout(() => setCopySuccess(null), 2000);
+  };
 
   if (!log) return null;
 
@@ -88,25 +105,106 @@ export function MetadataSidebar({
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Log Metadata
           </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            aria-label="Close sidebar"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleCopyLog}
+              variant="ghost"
+              size="sm"
+              className="p-2"
+              title="Copy log details"
+              leftIcon={
+                copySuccess === "log" ? (
+                  <svg
+                    className="w-5 h-5 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                )
+              }
+            />
+            <Button
+              onClick={handleCopyId}
+              variant="ghost"
+              size="sm"
+              className="p-2"
+              title="Copy log ID"
+              leftIcon={
+                copySuccess === "id" ? (
+                  <svg
+                    className="w-5 h-5 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                    />
+                  </svg>
+                )
+              }
+            />
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="sm"
+              className="p-2"
+              aria-label="Close sidebar"
+              leftIcon={
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              }
+            />
+          </div>
         </div>
 
         {/* Content */}

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { LogViewer } from "@/components/LogViewer";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { LogoutButton } from "@/components/LogoutButton";
+
+import { LogViewer } from "@/components/sections/LogViewer";
+import { LogoutButton } from "@/components/ui/LogoutButton";
 
 export default function Home() {
   return (
