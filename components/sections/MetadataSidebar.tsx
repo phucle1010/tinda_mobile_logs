@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+import { useTheme } from "@/providers/ThemeProvider";
 
 import type { Log, LogLevel } from "@/types/log";
 
+import { Button } from "@/components/ui/Button";
+
 import { formatDate, parseMetadata } from "@/utils/format";
 import { copyLogToClipboard, copyLogId } from "@/utils/export";
-import { Button } from "@/components/ui/Button";
 
 interface MetadataSidebarProps {
   log: Log | null;
@@ -21,6 +26,7 @@ export function MetadataSidebar({
 }: MetadataSidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -91,7 +97,7 @@ export function MetadataSidebar({
       <div
         ref={sidebarRef}
         onClick={(e) => e.stopPropagation()}
-        className={`fixed z-[9999] right-0 top-0 h-full w-full max-w-lg bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-all duration-500 ease-out overflow-y-auto will-change-transform ${
+        className={`fixed z-[9999] right-0 top-0 h-full w-full max-w-3xl bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-all duration-500 ease-out overflow-y-auto will-change-transform ${
           isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
         }`}
         style={{
@@ -267,9 +273,20 @@ export function MetadataSidebar({
                     </div>
                     <div className="text-sm text-gray-900 dark:text-gray-100 break-words">
                       {typeof value === "object" && value !== null ? (
-                        <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">
-                          {JSON.stringify(value, null, 2)}
-                        </pre>
+                        <div className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">
+                          <SyntaxHighlighter
+                            language="json"
+                            style={theme === "dark" ? vscDarkPlus : vs}
+                            customStyle={{
+                              margin: 0,
+                              padding: 0,
+                              background: "transparent",
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            {JSON.stringify(value, null, 2)}
+                          </SyntaxHighlighter>
+                        </div>
                       ) : (
                         <span>{String(value)}</span>
                       )}

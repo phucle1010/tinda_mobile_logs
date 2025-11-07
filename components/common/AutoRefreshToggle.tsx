@@ -19,15 +19,24 @@ export function AutoRefreshToggle({
   const intervals = [5, 10, 30, 60]; // seconds
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
       <Switch
         checked={enabled}
         onChange={onToggle}
         label="Auto-refresh"
-        size="md"
+        size="sm"
+        className="hidden sm:flex"
+      />
+      <Switch
+        checked={enabled}
+        onChange={onToggle}
+        label=""
+        size="sm"
+        className="sm:hidden"
+        title="Auto-refresh"
       />
       {enabled && (
-        <div className="w-20">
+        <div className="w-16 sm:w-20">
           <Select
             value={interval}
             onChange={(value) => onIntervalChange(Number(value))}
