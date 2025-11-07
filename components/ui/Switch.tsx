@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export interface SwitchProps {
   checked: boolean;
@@ -9,6 +9,7 @@ export interface SwitchProps {
   label?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
+  title?: string;
 }
 
 export function Switch({
@@ -18,6 +19,7 @@ export function Switch({
   label,
   size = "md",
   className = "",
+  title,
 }: SwitchProps) {
   const switchRef = useRef<HTMLButtonElement>(null);
 
@@ -68,6 +70,7 @@ export function Switch({
         disabled={disabled}
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
+        title={title}
         className={`
           ${sizes.track}
           relative inline-flex items-center rounded-full

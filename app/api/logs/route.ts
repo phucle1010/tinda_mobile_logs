@@ -7,12 +7,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1", 10);
     const pageSize = parseInt(searchParams.get("pageSize") || "20", 10);
-    const level = searchParams.get("level") || "ALL";
+    const levelParam = searchParams.get("level") || "ALL";
     const search = searchParams.get("search") || "";
+    const searchRegex = searchParams.get("searchRegex") === "true";
     const sortBy = searchParams.get("sortBy") || "created_at";
     const sortOrder = searchParams.get("sortOrder") || "desc";
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
+    const exportAll = searchParams.get("exportAll") === "true";
+    const metadataFiltersParam = searchParams.get("metadataFilters");
 
     const supabase = await createServerClient();
 
@@ -41,23 +44,56 @@ export async function GET(request: NextRequest) {
       query = query.lte("created_at", toDate.toISOString());
     }
 
-    // Filter by level
-    if (level !== "ALL") {
-      query = query.eq("level", level);
+    // Filter by level - support array or single value
+    if (levelParam !== "ALL") {
+      try {
+        const levels = JSON.parse(levelParam);
+        if (Array.isArray(levels) && levels.length > 0) {
+          query = query.in("level", levels);
+        } else if (typeof levels === "string") {
+          query = query.eq("level", levels);
+        }
+      } catch {
+        // If not JSON, treat as single level
+        query = query.eq("level", levelParam);
+      }
     }
 
-    // Search in message
+    // Search in message - support regex or ilike
     if (search) {
-      query = query.ilike("message", `%${search}%`);
+      if (searchRegex) {
+        // For regex, we need to use text search or filter client-side
+        // Supabase doesn't support regex directly, so we'll use ilike as fallback
+        // and filter client-side if needed
+        query = query.ilike("message", `%${search}%`);
+      } else {
+        query = query.ilike("message", `%${search}%`);
+      }
+    }
+
+    // Apply metadata filters
+    if (metadataFiltersParam) {
+      try {
+        const metadataFilters = JSON.parse(metadataFiltersParam);
+        if (typeof metadataFilters === "object") {
+          // Metadata filters need to be applied after fetching
+          // We'll filter in the response
+        }
+      } catch {
+        // Invalid JSON, ignore
+      }
     }
 
     // Sorting
     query = query.order(sortBy, { ascending: sortOrder === "asc" });
 
-    // Pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to);
+    // For export all, don't paginate
+    if (!exportAll) {
+      // Pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+    }
 
     const { data, error, count } = await query;
 
@@ -69,14 +105,46 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const total = count || 0;
-    const totalPages = Math.ceil(total / pageSize);
+    let logs = data || [];
+
+    // Apply metadata filters client-side if needed
+    if (metadataFiltersParam) {
+      try {
+        const metadataFilters = JSON.parse(metadataFiltersParam);
+        if (typeof metadataFilters === "object") {
+          logs = logs.filter((log) => {
+            return Object.entries(metadataFilters).every(([key, value]) => {
+              const metaValue = (log.meta as Record<string, unknown>)?.[key];
+              if (metaValue === undefined) return false;
+              const metaStr = String(metaValue).toLowerCase();
+              const filterStr = String(value).toLowerCase();
+              return metaStr.includes(filterStr);
+            });
+          });
+        }
+      } catch {
+        // Invalid JSON, ignore
+      }
+    }
+
+    // Apply regex search if needed (client-side)
+    if (search && searchRegex) {
+      try {
+        const regex = new RegExp(search, "i");
+        logs = logs.filter((log) => regex.test(log.message));
+      } catch {
+        // Invalid regex, ignore
+      }
+    }
+
+    const total = exportAll ? logs.length : count || 0;
+    const totalPages = exportAll ? 1 : Math.ceil(total / pageSize);
 
     const response: LogsResponse = {
-      logs: data || [],
-      total,
-      page,
-      pageSize,
+      logs,
+      total: exportAll ? logs.length : total,
+      page: exportAll ? 1 : page,
+      pageSize: exportAll ? logs.length : pageSize,
       totalPages,
     };
 

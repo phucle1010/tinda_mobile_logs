@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Select } from "@/components/ui/Select";
 
 interface DateRangeFilterProps {
@@ -22,8 +22,6 @@ export function DateRangeFilter({
   dateTo,
   onDateChange,
 }: DateRangeFilterProps) {
-  const [showCustom, setShowCustom] = useState(false);
-
   // Determine current selected preset
   const currentPreset = useMemo(() => {
     if (!dateFrom && !dateTo) {
@@ -64,14 +62,14 @@ export function DateRangeFilter({
     return "all";
   }, [dateFrom, dateTo]);
 
-  // Show custom inputs when custom is selected or when dates don't match presets
-  useEffect(() => {
-    if (currentPreset === "custom" && dateFrom && dateTo) {
-      setShowCustom(true);
-    } else if (currentPreset !== "custom") {
-      setShowCustom(false);
-    }
-  }, [currentPreset, dateFrom, dateTo]);
+  // Derive showCustom from currentPreset - no state or useEffect needed
+  // Use local state only for manual override when user explicitly toggles
+  const [manualShowCustom, setManualShowCustom] = useState<boolean | null>(null);
+  
+  // Determine if custom inputs should be shown
+  const showCustom = manualShowCustom !== null 
+    ? manualShowCustom 
+    : (currentPreset === "custom" && dateFrom && dateTo);
 
   const handlePreset = (preset: string) => {
     if (preset === "all") {
@@ -80,8 +78,6 @@ export function DateRangeFilter({
     }
 
     if (preset === "custom") {
-      // Show custom date inputs
-      setShowCustom(true);
       // If no dates are set, set default to today
       if (!dateFrom || !dateTo) {
         const today = new Date();
@@ -89,6 +85,7 @@ export function DateRangeFilter({
         const todayStr = today.toISOString().split("T")[0];
         onDateChange(todayStr, todayStr);
       }
+      setManualShowCustom(true);
       return;
     }
 
@@ -117,7 +114,7 @@ export function DateRangeFilter({
     const fromStr = from.toISOString().split("T")[0];
     const toStr = to.toISOString().split("T")[0];
     onDateChange(fromStr, toStr);
-    setShowCustom(false);
+    setManualShowCustom(false);
   };
 
   return (
@@ -128,7 +125,7 @@ export function DateRangeFilter({
           value={currentPreset}
           onChange={(value) => handlePreset(value as string)}
           options={presets}
-          size="sm"
+          size="md"
         />
       </div>
 
