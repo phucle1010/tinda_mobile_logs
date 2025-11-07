@@ -61,7 +61,7 @@ export function MetadataSidebar({
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-xs z-40 transition-all duration-200 ease-in-out ${
+        className={`fixed z-[9999] inset-0 bg-black/50 backdrop-blur-xs z-40 transition-all duration-200 ease-in-out ${
           isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -74,7 +74,7 @@ export function MetadataSidebar({
       <div
         ref={sidebarRef}
         onClick={(e) => e.stopPropagation()}
-        className={`fixed right-0 top-0 h-full w-full max-w-lg bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-all duration-500 ease-out overflow-y-auto will-change-transform ${
+        className={`fixed z-[9999] right-0 top-0 h-full w-full max-w-lg bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-all duration-500 ease-out overflow-y-auto will-change-transform ${
           isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
         }`}
         style={{
@@ -138,7 +138,7 @@ export function MetadataSidebar({
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Message:
                   </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100 text-right max-w-[70%]">
+                  <span className="text-sm text-gray-900 dark:text-gray-100 text-right max-w-[70%] break-words">
                     {log.message}
                   </span>
                 </div>

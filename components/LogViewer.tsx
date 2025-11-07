@@ -1,11 +1,11 @@
 "use client";
 
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useLogs } from "@/actions/useLogs";
 import { MetadataSidebar } from "@/components/MetadataSidebar";
-import { Pagination } from "@/components/Pagination";
+import { Table, type TableColumn } from "@/components/Table";
 
 import type { Log, LogLevel, LogsQueryParams } from "@/types/log";
 import { formatDate, getDeviceInfo } from "@/utils/format";
@@ -94,10 +94,14 @@ export function LogViewer() {
     setParams({ page });
   };
 
-  const handleViewMeta = (log: Log) => {
+  const handlePageSizeChange = (pageSize: number) => {
+    setParams({ pageSize, page: 1 });
+  };
+
+  const handleViewMeta = useCallback((log: Log) => {
     setSelectedLog(log);
     setIsSidebarOpen(true);
-  };
+  }, []);
 
   const handleCloseSidebar = () => {
     setIsSidebarOpen(false);
@@ -122,38 +126,72 @@ export function LogViewer() {
     }
   };
 
+  const columns: TableColumn<Log>[] = useMemo(
+    () => [
+      {
+        key: "no",
+        header: "No",
+        className: "whitespace-nowrap text-gray-500 dark:text-gray-400",
+        render: (_, index) => (params.page - 1) * params.pageSize + index + 1,
+      },
+      {
+        key: "created_at",
+        header: "Created At",
+        className: "whitespace-nowrap text-gray-500 dark:text-gray-400",
+        render: (log) => formatDate(log.created_at),
+      },
+      {
+        key: "level",
+        header: "Level",
+        className: "whitespace-nowrap",
+        render: (log) => (
+          <span
+            className={`px-2 py-1 text-xs font-semibold rounded-full ${getLevelColor(
+              log.level
+            )}`}
+          >
+            {log.level}
+          </span>
+        ),
+      },
+      {
+        key: "message",
+        header: "Message",
+        render: (log) => (
+          <div className="text-gray-900 dark:text-gray-100 max-w-md break-words line-clamp-1">
+            {log.message}
+          </div>
+        ),
+      },
+      {
+        key: "meta",
+        header: "Meta",
+        headerClassName: "min-w-60",
+        render: (log) => (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewMeta(log);
+            }}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline transition-colors break-all line-clamp-1 text-left"
+          >
+            {getDeviceInfo(log.meta) || "View Meta"}
+          </button>
+        ),
+      },
+    ],
+    [params.page, params.pageSize, handleViewMeta]
+  );
+
   return (
     <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Log Viewer
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            View and filter application logs
-          </p>
-        </div>
-        <button
-          onClick={handleRefresh}
-          disabled={isLoading || isRefetching}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Refresh logs"
-        >
-          <svg
-            className={`w-5 h-5 ${isRefetching ? "animate-spin" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-          <span className="hidden sm:inline">Refresh</span>
-        </button>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Log Viewer
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          View and filter application logs
+        </p>
       </div>
 
       {/* Filters and Search */}
@@ -235,12 +273,6 @@ export function LogViewer() {
         </div>
       </div>
 
-      {/* Results Info */}
-      <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        Showing {logs.length} of {total} logs
-        {params.level !== "ALL" && ` (filtered by ${params.level})`}
-      </div>
-
       {/* Error State */}
       {isError && (
         <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -250,98 +282,26 @@ export function LogViewer() {
         </div>
       )}
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
-        </div>
-      )}
-
       {/* Logs Table */}
-      {!isLoading && !isError && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Level
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Message
-                  </th>
-                  <th className="min-w-60 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Meta
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {logs.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-6 py-8 text-center text-gray-500 dark:text-gray-400"
-                    >
-                      No logs found
-                    </td>
-                  </tr>
-                ) : (
-                  logs.map((log: Log, index: number) => (
-                    <tr
-                      key={log.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {(params.page - 1) * params.pageSize + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(log.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${getLevelColor(
-                            log.level
-                          )}`}
-                        >
-                          {log.level}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 dark:text-gray-100 max-w-md">
-                          {log.message}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleViewMeta(log)}
-                          className="text-sm text-blue-600 dark:text-blue-400 hover:underline transition-colors break-all line-clamp-1 text-left"
-                        >
-                          {getDeviceInfo(log.meta) || "View Meta"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {!isLoading && !isError && (
-        <div className="mt-6">
-          <Pagination
-            currentPage={params.page}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
+      {!isError && (
+        <Table
+          data={logs}
+          columns={columns}
+          keyExtractor={(log) => log.id}
+          emptyMessage="No logs found"
+          loading={isLoading}
+          onRefresh={handleRefresh}
+          isRefetching={isRefetching}
+          total={total}
+          resultsInfo={`Showing ${logs.length} of ${total} logs${
+            params.level !== "ALL" ? ` (filtered by ${params.level})` : ""
+          }`}
+          currentPage={params.page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          pageSize={params.pageSize}
+          onPageSizeChange={handlePageSizeChange}
+        />
       )}
 
       <MetadataSidebar

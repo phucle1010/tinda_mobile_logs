@@ -1,9 +1,14 @@
 "use client";
 
+import { Select } from "@/components/Select";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
+  pageSizeOptions?: number[];
   className?: string;
 }
 
@@ -11,9 +16,12 @@ export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
+  pageSize,
+  onPageSizeChange,
+  pageSizeOptions = [10, 20, 50, 100],
   className = "",
 }: PaginationProps) {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1 && !onPageSizeChange) return null;
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -78,113 +86,137 @@ export function Pagination({
   };
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
-      {/* Page Info */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Page {currentPage} of {totalPages}
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}>
+      {/* Page Info and Page Size Selector */}
+      <div className="flex items-center gap-4">
+        {/* Page Info */}
+        {totalPages > 0 && (
+          <div className="text-xs text-gray-600 dark:text-gray-400">
+            Page {currentPage} of {totalPages}
+          </div>
+        )}
+
+        {/* Page Size Selector */}
+        {onPageSizeChange && pageSize && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+              Per page:
+            </label>
+            <div className="w-20">
+              <Select
+                value={pageSize}
+                onChange={(value) => onPageSizeChange(Number(value))}
+                options={pageSizeOptions}
+                size="sm"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex items-center gap-2">
-        {/* First Page Button */}
-        <button
-          onClick={handleFirst}
-          disabled={currentPage === 1}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          aria-label="First page"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1.5">
+          {/* First Page Button */}
+          <button
+            onClick={handleFirst}
+            disabled={currentPage === 1}
+            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            aria-label="First page"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-            />
-          </svg>
-        </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
+            </svg>
+          </button>
 
-        {/* Previous Button */}
-        <button
-          onClick={handlePrevious}
-          disabled={currentPage === 1}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Previous page"
-        >
-          Previous
-        </button>
+          {/* Previous Button */}
+          <button
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Previous page"
+          >
+            Previous
+          </button>
 
-        {/* Page Numbers */}
-        <div className="flex items-center gap-1">
-          {pageNumbers.map((page, index) => {
-            if (page === "ellipsis") {
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            {pageNumbers.map((page, index) => {
+              if (page === "ellipsis") {
+                return (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="px-1.5 text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    ...
+                  </span>
+                );
+              }
+
+              const pageNum = page as number;
+              const isActive = pageNum === currentPage;
+
               return (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="px-2 text-gray-500 dark:text-gray-400"
+                <button
+                  key={pageNum}
+                  onClick={() => onPageChange(pageNum)}
+                  className={`min-w-[32px] px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? "bg-blue-600 text-white dark:bg-blue-500"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                  aria-label={`Page ${pageNum}`}
+                  aria-current={isActive ? "page" : undefined}
                 >
-                  ...
-                </span>
+                  {pageNum}
+                </button>
               );
-            }
+            })}
+          </div>
 
-            const pageNum = page as number;
-            const isActive = pageNum === currentPage;
-
-            return (
-              <button
-                key={pageNum}
-                onClick={() => onPageChange(pageNum)}
-                className={`min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-blue-600 text-white dark:bg-blue-500"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}
-                aria-label={`Page ${pageNum}`}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Next Button */}
-        <button
-          onClick={handleNext}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Next page"
-        >
-          Next
-        </button>
-
-        {/* Last Page Button */}
-        <button
-          onClick={handleLast}
-          disabled={currentPage === totalPages}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Last page"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          {/* Next Button */}
+          <button
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Next page"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 5l7 7-7 7M5 5l7 7-7 7"
-            />
-          </svg>
-        </button>
-      </div>
+            Next
+          </button>
+
+          {/* Last Page Button */}
+          <button
+            onClick={handleLast}
+            disabled={currentPage === totalPages}
+            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Last page"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 5l7 7-7 7M5 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
